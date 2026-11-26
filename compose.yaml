@@ -1,0 +1,30 @@
+services:
+  database:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: bookwise
+      MYSQL_USER: bookwise
+      MYSQL_PASSWORD: bookwise
+      MYSQL_ROOT_PASSWORD: local-root-password
+    ports:
+      - "3306:3306"
+    volumes:
+      - bookwise-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-ubookwise", "-pbookwise"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  app:
+    build: .
+    environment:
+      DB_URL: jdbc:mysql://database:3306/bookwise?serverTimezone=UTC
+      DB_USER: bookwise
+      DB_PASSWORD: bookwise
+    ports:
+      - "8080:8080"
+    depends_on:
+      database:
+        condition: service_healthy
+volumes:
+  bookwise-data:
